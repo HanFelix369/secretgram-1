@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+      body {
+        height: 100vh;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: 100px calc(100vh - 100px);
+        background: skyblue;
+      }
+      nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2em;
+        box-shadow: 0 0 4px 3px rgba(0, 0, 0, 0.079);
+        background-color: skyblue;
+
+      }
+      nav h2{
+        mix-blend-mode: difference;
+        color: white;
+        
+      }
+      .container {
+        background: linear-gradient(mediumpurple, blue);
+        padding: 10px 5%;
+        display: grid;
+        grid-template-rows: 1fr 60px;
+        position: relative;
+        overflow: hidden;
+        background: #e0e0e0;
+      }
+
+      .chatbg {
+        background-color: powderblue;
+        border-radius: 30px;
+        overflow: auto;
+        position: relative;
+        padding: 20px;
+        background: #dcdbdb;
+        box-shadow: 7px 7px 14px #bbbaba, -7px -7px 14px #fdfcfc;
+        display: grid;
+        /* grid-template-rows: 100px 100px; */
+        grid-auto-flow: row;
+        grid-auto-rows: 60px 60px;
+        gap: 20px;
+      }
+      .send {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .send form {
+        width: 100%;
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+      }
+      .send input {
+        padding: 10px;
+        width: 80%;
+        background-color: transparent;
+        border-radius: 10px;
+        background-color: white;
+        box-shadow: 20px 20px 60px #bebebe, -20px -20px 60px #ffffff;
+        border: none;
+        outline: none;
+        font-size: 17px;
+      }
+      .send input:focus {
+        box-shadow: inset 20px 20px 60px #ede9e9, inset -20px -20px 60px #ffffff;
+      }
+      .send button {
+        padding: 10px 20px;
+        background: #dcdbdb;
+        box-shadow: 7px 7px 14px #bbbaba, -7px -7px 14px #fdfcfc;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 17px;
+      }
+      .send button:active {
+        box-shadow: inset 7px 7px 14px #bbbaba, inset -7px -7px 14px #fdfcfc;
+        color: gray;
+      }
+      .left,
+      .right,
+      .message {
+      
+        min-width: 20%;
+        max-width: fit-content;
+        background: #dcdbdb;
+        box-shadow: 7px 7px 14px #bbbaba, -7px -7px 14px #fdfcfc;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        overflow: auto;
+        padding: 10px;
+      }
+      .right {
+        justify-self: end;
+      }
+      .message {
+        justify-self: center;
+        width: 100%;
+        text-align: center;
+        vertical-align: middle;
+        height: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <h2>CHAT</h2>
+    </nav>
+    <div class="container">
+      <div class="chatbg">
+       
+      </div>
+      <div class="send">
+        <form action="##" id="send">
+          <input type="text" placeholder="Type something.." id="message" />
+          <button class="submitbtn" type="submit" id="sendbtn">Send</button>
+        </form>
+      </div>
+    </div>
+    <script type="text/javascript">
+      let socket = io();
+      
+
+      const btn = document.querySelector("#sendbtn");
+      const nav = document.querySelector("nav");
+      const msgin = document.querySelector("#message");
+      const form = document.querySelector("#send");
+      const msgcont = document.querySelector(".chatbg");
+      let colorlist = ["red","green","blue","skyblue","orange","purple","navy","gold"]
+      let rancolor = colorlist[Math.floor(Math.random(0) * 7)]
+      nav.style.background=rancolor
+      const name1 = prompt("Please enter your name");
+      if (name1 !== "") {
+        console.log(form);
+        socket.emit("send name", name1);
+        socket.on("send name", (username) => {
+          let name = document.createElement("div");
+          name.classList.add("message");
+          name.innerHTML = ` ${username} has been joined the chat`;
+          msgcont.appendChild(name);
+          msgcont.scrollBy(0,10000)
+          nav.style.background=rancolor
+        });
+      } else {
+        confirm("First enter Name");
+        location.reload();
+      }
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (msgin.value) {
+          
+          let msgbox = document.createElement("div");
+          msgbox.classList.add("right");
+          msgbox.textContent = `You:${msgin.value}`;
+          msgcont.appendChild(msgbox);
+          socket.emit("send message", msgin.value);
+          msgin.value = "";
+          msgcont.scrollBy(0,10000)
+        }
+      });
+
+      socket.on("receive",data=>{
+        let msgbox = document.createElement("div");
+          msgbox.classList.add("left");
+          msgbox.textContent = `${data.name}: ${data.message} `;
+          msgcont.appendChild(msgbox);
+          msgcont.scrollBy(0,10000)
+      })
+
+      socket.on("left",name=>{
+        let msgbox = document.createElement("div");
+          msgbox.classList.add("message");
+          msgbox.textContent = `${name}: has left chat`;
+          msgcont.appendChild(msgbox);
+          msgcont.scrollBy(0,10000)
+      })
+    </script>
+  </body>
+</html>
