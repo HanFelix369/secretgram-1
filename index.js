@@ -9,7 +9,7 @@ const io = new Server(server);
 const port = process.env.port || 8000;
   
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname,"../index.html"));
+    res.sendFile(path.join(__dirname,"./index.html"));
 });
   let users = {}
 io.on('connection', (socket) => {
